@@ -19,7 +19,8 @@ L.Control.Slider = L.Control.extend({
         getValue: function(value) {
             return value;
         },
-        showValue: true
+        showValue: true,
+        syncSlider: false
     },
     initialize: function (f, options) {
         L.setOptions(this, options);
@@ -45,8 +46,9 @@ L.Control.Slider = L.Control.extend({
         return this._container;
     },
     _updateValue: function () {
+        this.value = this.slider.value;
         if (this.options.showValue){
-    	   this._sliderValue.innerHTML = this.options.getValue(this.value = this.slider.value);
+           this._sliderValue.innerHTML = this.options.getValue(this.value);
         }
         this.update(this.value);
     },
@@ -61,6 +63,7 @@ L.Control.Slider = L.Control.extend({
             this._sliderValue = L.DomUtil.create('p', className+'-value', this._container);
             this._sliderValue.innerHTML = this.options.getValue(this.options.value);
         }
+
         if(this.options.increment) {
             this._plus = L.DomUtil.create('a', className + '-plus', this._container);
             this._plus.innerHTML = "+";
@@ -78,7 +81,15 @@ L.Control.Slider = L.Control.extend({
         this.slider.setAttribute("max", this.options.max);
         this.slider.setAttribute("step", this.options.step);
         this.slider.setAttribute("value", this.options.value);
-        this.slider.setAttribute("onChange", this.options.id + "._updateValue()");
+        if (this.options.syncSlider) {
+            L.DomEvent.on(this.slider, "input", function (e) {
+                this._updateValue();
+            }, this);
+        } else {
+            L.DomEvent.on(this.slider, "change", function (e) {
+                this._updateValue();
+            }, this);
+        }
 
         if(this.options.increment) {
             this._minus = L.DomUtil.create('a', className + '-minus', this._container);
@@ -91,7 +102,7 @@ L.Control.Slider = L.Control.extend({
             else if (this.options.orientation =='vertical') {this._sliderContainer.style.height = (this.options.size.replace('px','') -36) +'px';}
             else {this._sliderContainer.style.width = (this.options.size.replace('px','') -56) +'px';}
         } else {
-            if (window.matchMedia("screen and (-webkit-min-device-pixel-ratio:0)").matches && this.options.orientation =='vertical') {this.slider.style.width = (this.options.size.replace('px','') -10) +'px'; this._sliderContainer.style.height = (this.options.size.replace('px','') -36) +'px';}
+            if (window.matchMedia("screen and (-webkit-min-device-pixel-ratio:0)").matches && this.options.orientation =='vertical') {this.slider.style.width = (this.options.size.replace('px','') -10) +'px'; this._sliderContainer.style.height = (this.options.size.replace('px','') -10) +'px';}
             else if (this.options.orientation =='vertical') {this._sliderContainer.style.height = (this.options.size.replace('px','') -10) +'px';}
             else {this._sliderContainer.style.width = (this.options.size.replace('px','') -25) +'px';}
         }
